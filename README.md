@@ -30,8 +30,9 @@ Sadece modern bir tarayıcı yeterlidir. Dosyayı açmanız yeterlidir.
 
 ## Ekran Görüntüsü
 
-![image](https://github.com/user-attachments/assets/10e94087-5921-4df7-b102-421fee87bc2a)
-![image](https://github.com/user-attachments/assets/a7b67473-b679-4415-b522-e95b6c0bdefe)
+![Ekran görüntüsü 2025-06-08 231315](https://github.com/user-attachments/assets/bdd23cb5-1a62-4f11-96b4-f5039a794335)
+![Ekran görüntüsü 2025-06-08 231333](https://github.com/user-attachments/assets/d69fe9af-158f-4791-baa6-4b838a8be843)
+
 
 
 ## Siz de Deneyin
