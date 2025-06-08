@@ -40,7 +40,7 @@ Sadece modern bir tarayıcı yeterlidir. Dosyayı açmanız yeterlidir.
 
 ## Simülasyon Videosu için 
 
-[Simülasyon videosu için tıklayınız]()
+[Simülasyon videosu için tıklayınız](https://www.youtube.com/watch?v=NCJMXv1PZ9o)
 
 ## Proje Dökümanına Ulaşmak için 
 
