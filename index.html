@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Hamming SEC-DED Simülatörü</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e9e3ce;  
+      padding: 20px;
+    
+    }
+    .container {
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-top: 20px;
+    }
+    .error-details {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+    .error {
+      color: #d32f2f;  
+      font-weight: bold;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    
+    .output-box {
+      background-color: white;  
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      min-height: 30px;
+      margin-top: 5px;
+      border: 2px solid #30d5c8;  
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: bold;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 5px 0;
+      background-color: #30d5c8;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005f99;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Hamming SEC-DED Simülatörü</h1>
+
+    <div class="section">
+      <label for="veriGirisi">Veri Girişi (8, 16 veya 32 bit):</label>
+      <input type="text" id="veriGirisi" placeholder="Örn: 10101100">
+      <button onclick="kodla()">Kodla</button>
+    </div>
+
+    <div class="section">
+      <h3>Hamming Kodu:</h3>
+      <div id="hammingKodCikti" class="output-box"></div>
+    </div>
+
+    <div class="section">
+      <h3>Tek Hata Ekle (Bit İndeksi):</h3>
+      <input type="number" id="hataIndeksi" min="1">
+      <button onclick="hataEkle()">Hata Ekle</button>
+    </div>
+
+    <div class="section">
+      <h3>Çift Hata Ekle (Bit İndeksleri):</h3>
+      <input type="number" id="ciftHataIndeksi1" min="1" placeholder="1. İndeks">
+      <input type="number" id="ciftHataIndeksi2" min="1" placeholder="2. İndeks">
+      <button onclick="ciftHataEkle()">Çift Hata Ekle</button>
+    </div>
+
+    <div class="section">
+      <button onclick="hataTespitDuzelt()">Hata Tespit & Düzelt</button>
+    </div>
+
+    <div class="section">
+      <h3>Hata Eklenmiş Veri:</h3>
+      <div id="hataEklendiCikti" class="output-box"></div>
+    </div>
+
+    <div class="section">
+      <h3>Düzeltilmiş Veri:</h3>
+      <div id="duzeltilmisVeriCikti" class="output-box"></div>
+    </div>
+
+    <div class="section">
+      <h3>Hata Analizi:</h3>
+      <div id="hataAnalizCikti" class="output-box">
+        <div id="hataKonum" class="error-details"></div>
+        <div id="hataDurum"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let bellek = [];
+    let orijinalKod = "";
+    let hataEklendi = [];
+
+    function kodla() {
+  const veri = document.getElementById("veriGirisi").value.trim();
+  if (!/^[01]+$/.test(veri) || ![8, 16, 32].includes(veri.length)) {
+    alert("Lütfen 8, 16 veya 32 bitlik 0 ve 1 içeren bir veri girin.");
+    return;
+  }
+
+  const m = veri.length;
+  let r = 0;
+  while (Math.pow(2, r) < m + r + 1) r++;
+  const toplamUzunluk = m + r + 1;
+  const kodDizisi = new Array(toplamUzunluk).fill(0);
+
+  // Veri bitlerini yerleştir 
+  let veriIndex = 0;
+  for (let i = 0; i < toplamUzunluk; i++) {
+    if (!isPowerOfTwo(i + 1)) {
+      kodDizisi[i] = parseInt(veri[veriIndex++] || 0);
+    }
+  }
+
+  // Parity bitlerini hesapla
+  for (let i = 0; i < r; i++) {
+    const parityPos = Math.pow(2, i) - 1;
+    let parity = 0;
+    for (let j = 0; j < toplamUzunluk; j++) {
+      if (j !== parityPos && (j + 1) & (1 << i)) {
+        parity ^= kodDizisi[j] || 0;
+      }
+    }
+    kodDizisi[parityPos] = parity;
+  }
+
+  // Genel parity kontrolü 
+  let genelParity = 0;  
+  for (let i = 0; i < toplamUzunluk - 1; i++) {
+    genelParity ^= kodDizisi[i];
+  }
+  kodDizisi[toplamUzunluk - 1] = genelParity;
+
+  orijinalKod = kodDizisi.join('');
+  document.getElementById("hammingKodCikti").textContent = orijinalKod;
+  bellek = orijinalKod.split('');
+  hataEklendi = []; 
+  document.getElementById("hataEklendiCikti").textContent = ""; // Kutuyu temizle
+  document.getElementById("duzeltilmisVeriCikti").textContent = "";
+  document.getElementById("hataKonum").textContent = "";
+  document.getElementById("hataDurum").textContent = "";
+}
+
+    function isPowerOfTwo(n) {
+      return n && (n & (n - 1)) === 0;
+    }
+
+    function hataEkle() {
+    const indeks = parseInt(document.getElementById("hataIndeksi").value);
+    if (!orijinalKod) {
+        alert("Önce veri kodlayın.");
+        return;
+    }
+    if (isNaN(indeks) || indeks < 1 || indeks > bellek.length) {
+        alert(`Geçersiz indeks. 1 ile ${bellek.length} arasında bir değer girin.`);
+        return;
+    }
+    // Sağdan sayarak indeksi hesapla 
+    const hataPoz = bellek.length - indeks;
+    hataEklendi = [...bellek];
+    hataEklendi[hataPoz] = hataEklendi[hataPoz] === '0' ? '1' : '0';
+    document.getElementById("hataEklendiCikti").textContent = hataEklendi.join('');
+    document.getElementById("duzeltilmisVeriCikti").textContent = "";
+    document.getElementById("hataKonum").textContent = `Hata  ${indeks}. bitte eklendi.`;
+    document.getElementById("hataDurum").textContent = "";
+    alert(` ${indeks}. bitte hata eklendi.`);
+}
+
+    function ciftHataEkle() {
+      const indeks1 = parseInt(document.getElementById("ciftHataIndeksi1").value);
+      const indeks2 = parseInt(document.getElementById("ciftHataIndeksi2").value);
+      if (!orijinalKod) {
+        alert("Önce veri kodlayın.");
+        return;
+      }
+      if (isNaN(indeks1) || isNaN(indeks2) || indeks1 < 1 || indeks2 < 1 || indeks1 > bellek.length || indeks2 > bellek.length || indeks1 === indeks2) {
+        alert(`Geçersiz indeksler. 1 ile ${bellek.length} arasında farklı iki değer girin.`);
+        return;
+      }
+      const hataPoz1 = bellek.length - indeks1;
+      const hataPoz2 = bellek.length - indeks2;
+      hataEklendi = [...bellek];
+      hataEklendi[hataPoz1] = hataEklendi[hataPoz1] === '0' ? '1' : '0';
+      hataEklendi[hataPoz2] = hataEklendi[hataPoz2] === '0' ? '1' : '0';
+      document.getElementById("hataEklendiCikti").textContent = hataEklendi.join('');
+      document.getElementById("duzeltilmisVeriCikti").textContent = "";
+      document.getElementById("hataKonum").textContent = `Çift hata ${indeks1}. ve ${indeks2}. bitlerde eklendi.`;
+      document.getElementById("hataDurum").textContent = "";
+      alert(`Çift hata ${indeks1}. ve ${indeks2}. bitlerde eklendi.`);
+    }
+
+    function hataTespitDuzelt() {
+      if (hataEklendi.length === 0) {
+        alert("Önce veri kodlayın ve hata ekleyin.");
+        return;
+      }
+
+      const toplamUzunluk = hataEklendi.length;
+      let r = 0;
+      while (Math.pow(2, r) < toplamUzunluk) r++;
+
+      let syndrome = 0;
+      let genelParity = 0;
+
+      // Genel parity hesapla
+      for (let i = 0; i < toplamUzunluk; i++) {
+        genelParity ^= parseInt(hataEklendi[i]) || 0;
+      }
+
+      // Syndrome hesapla
+      for (let i = 0; i < r; i++) {
+        const parityPos = Math.pow(2, i) - 1;
+        let parity = 0;
+        for (let j = 0; j < toplamUzunluk; j++) {
+          if ((j + 1) & (1 << i)) { // Parity bitinin kontrol ettiği tüm bitler
+            parity ^= parseInt(hataEklendi[j]) || 0;
+          }
+        }
+        if (parity !== 0) {
+          syndrome += Math.pow(2, i);
+        }
+      }
+
+       let duzeltilmisVeri = [...hataEklendi];
+
+    if (syndrome === 0 && genelParity === 0) {
+        document.getElementById("hataKonum").textContent = "";
+        document.getElementById("hataDurum").textContent = "Hata yok.";
+        document.getElementById("duzeltilmisVeriCikti").textContent = orijinalKod;
+    } else if (syndrome > 0 && genelParity !== 0) {
+        // Sağdan 1-tabanlı indekse çevir
+        const hataIndeksi = bellek.length - syndrome;  
+        
+        if (hataIndeksi >= 0 && hataIndeksi < bellek.length) {  // Hata indeksini kontrol et
+            duzeltilmisVeri[hataIndeksi] = hataEklendi[hataIndeksi] === '1' ? '0' : '1';
+
+            
+            document.getElementById("hataDurum").textContent = "Hata Düzeltildi.";
+            document.getElementById("hataDurum").className = "success";  
+            document.getElementById("duzeltilmisVeriCikti").textContent = orijinalKod;
+        } else {
+             document.getElementById("hataKonum").textContent = "Hata konumu geçersiz.";
+             document.getElementById("hataDurum").textContent = "Düzeltilemedi.";
+            document.getElementById("hataDurum").className = "error";  
+            document.getElementById("duzeltilmisVeriCikti").textContent = hataEklendi.join('');
+}
+    } else {
+        document.getElementById("hataKonum").textContent = "Çift hata tespit edildi.";
+        document.getElementById("hataDurum").textContent = "Düzeltilemedi.";
+         document.getElementById("hataDurum").className = "error";
+        document.getElementById("duzeltilmisVeriCikti").textContent = hataEklendi.join('');
+    }
+}
+  </script>
+</body>
+</html>
