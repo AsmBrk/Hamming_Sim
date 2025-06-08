@@ -37,7 +37,7 @@ Sadece modern bir tarayıcı yeterlidir. Dosyayı açmanız yeterlidir.
 
 ## Siz de Deneyin
 
-[Denemek için tıklayınız]()
+[Simülasyonu Denemek için tıklayınız](https://asmbrk.github.io/Hamming_Sim/)
 
 ## Simülasyon Videosu için 
 
