@@ -45,7 +45,7 @@ Sadece modern bir tarayıcı yeterlidir. Dosyayı açmanız yeterlidir.
 
 ## Proje Dökümanına Ulaşmak için 
 
-[Proje Dökümanı için tıklayınız]()
+[Proje Dökümanı için tıklayınız](https://github.com/AsmBrk/Hamming_Sim/blob/main/BLM230_PROJE_As%C4%B1mBurak%C3%96zt%C3%BCrk_22360859063.pdf)
 
 
 
